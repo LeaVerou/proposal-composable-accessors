@@ -17,11 +17,20 @@ For history, see the [original proposal](https://github.com/LeaVerou/proposal-co
 
 There are large classes of accessor use cases with strong commonalities and they deserve better DX and tooling support.
 
+
+
+Most of these accessors are **_additive_ or _composable_**:
+Rather than the mental model of replacing a property with arbitrary code that regular accessors are designed around,
+composable accessors are **value-backed**: as a baseline they proxy another property (stored in an internal slot by default, or provided by another property), and any validation logic, transformations, side effects, etc. are **layered over that baseline**.
+
+The underlying value-backed plumbing is provided by [auto-accessors](https://github.com/tc39/proposal-grouped-and-auto-accessors) or [alias accessors](https://github.com/tc39/proposal-alias-accessors).
+Then, the additional functionality is layered over that baseline through built-in decorators, which is the subject of this proposal.
+
 Some examples include:
-- Lazy evaluation: Defer expensive computations until a property is accessed and then cache them
-- Data validation: Reject certain writes (loudly or silently)
-- Data normalization: Accept multiple formats but only store a canonicalized version
-- Side effects before or after writes
+- **Lazy evaluation:** Defer expensive computations until a property is accessed and then cache them
+- **Data validation:** Reject certain writes (loudly or silently)
+- **Data normalization:** Accept multiple formats but only store a canonicalized version
+- **Side effects:** Run code before or after writes
 
 This proposal aims to explore which of these may have good Impact/Effort to expose as built-in [decorators](https://github.com/tc39/proposal-decorators).
 
@@ -31,14 +40,14 @@ The [original proposal](https://github.com/LeaVerou/proposal-composable-value-ac
 However, decorators have several benefits over syntax:
 - They are a much smaller delta, increasing impact/effort ratio
 - Runtime semantics can be polyfilled, syntax needs to be transpiled
-- Can extend to non-property values where this makes sense. For example, there are potential extensions to support decorators on [function parameters](https://github.com/tc39/proposal-decorators/blob/master/EXTENSIONS.md#parameter-decorators-and-annotations), [`let` variables](https://github.com/tc39/proposal-decorators/blob/master/EXTENSIONS.md#let-decorators), and [`const` variables](https://github.com/tc39/proposal-decorators/blob/master/EXTENSIONS.md#const-decorators). Most of these decorators could be immensely useful there too.
+- Can extend to non-property values where this makes sense. For example, there are potential extensions to support decorators on [function parameters](https://github.com/tc39/proposal-blob/master/EXTENSIONS.md#parameter-decorators-and-annotations), [`let` variables](https://github.com/tc39/proposal-blob/master/EXTENSIONS.md#let-decorators), and [`const` variables](https://github.com/tc39/proposal-blob/master/EXTENSIONS.md#const-decorators). Most of these decorators could be immensely useful there too.
 
 Using decorators does come with some disadvantages, but they can all be mitigated:
 | Problem | Description | Mitigation |
 |---------|-------------|------------|
 | Readability | Poor readability when passing large arguments, putting potentially several lines of auxiliary information before the core ones (property name and initial value). | Use references for longer arguments. |
 | Lossiness | Decorators modify accessor functions by wrapping them, which obliterates the original setter. | Decorator implementation can be designed to preserve the original setter on a property. There may even be space for a generic `Function` feature that does this. |
-| Imperative API | Decorators cannot be applied imperatively. | Some use cases can be mitigated by stubbing the decorator function or using [object literals](https://github.com/tc39/proposal-decorators/blob/master/EXTENSIONS.md#object-literal-and-property-decorators-and-annotations) and copying out their descriptors. |
+| Imperative API | Decorators cannot be applied imperatively. | Many use cases can be mitigated by stubbing the decorator function and applying the result to the property descriptor. |
 
 ### Why not just rely on userland decorators?
 
@@ -55,13 +64,13 @@ import isNumeric from "./validators.js";
 const { validate, lazy } = Decorators;
 
 class C {
-	@validate(isNumeric, function(v) { return v <= this.max; })
+	@validate(isNumeric)
 	accessor min = 0;
 
-	@validate(isNumeric, function(v) { return v >= this.min; })
+	@validate(function(v) { return v >= this.min; })
 	accessor max = 100;
 
-	@lazy accessor foo = function() {
+	@memoized get foo () {
 		return expensiveComputation();
 	}
 }
@@ -84,42 +93,13 @@ class C {
 
 ## Index of current ideas
 
+> [!IMPORTANT]
+> This is an early exploration into what types of built-in decorators might be useful.
+> As such, it errs on the side of breadth, but it is expected to be narrowed down and refined over time.
+> Sample code is illustrative and not meant to be production-ready or exhaustively tested.
+
+- [`@memoized`](memoized.md) - Cache the result of expensive computations. Also useful for implementing lazy evaluation (since decorators cannot convert to a value property).
 - [`@validate`](validate.md) - Silently or loudly reject writes that do not fulfill certain criteria
-- [`@lazy`](lazy.md) - Defer expensive computations until the property is accessed and then cache them
 - [`@normalize`](normalize.md) - Normalize values to a canonical format before writes
-- [`@willSet` and `@didSet`](side-effects.md) - Run code before or after writes
+- [Side effects: `@willSet`, `@didSet`,  `@willChange`, `@changed`](side-effects.md) - Run code before or after writes
 
-## Practical examples
-
-For examples of how individual decorators can be used, see their pages.
-Here, we include a few practical examples that pull multiple together.
-
-### Tiny signals
-
-Here is an example from [tiny-signals](https://github.com/jsebrech/tiny-signals/blob/main/signals.js):
-
-Original syntax:
-```js
-export class Signal extends EventTarget {
-    #value;
-    get value () { return this.#value; }
-    set value (value) {
-        if (equals(this.#value, value)) return;
-        this.#value = value;
-        this.dispatchEvent(new CustomEvent('change'));
-    }
-
-    // elided
-}
-```
-
-With decorators:
-```js
-export class Signal extends EventTarget {
-
-	@validate(equals)
-    @willSet(console.log.bind(console, 'before'))
-    @didSet(console.log.bind(console, 'after'))
-    alias value to #value;
-}
-```

@@ -17,7 +17,7 @@ It applies to the following kinds of decorators:
 - `accessor`
 - `setter`
 
-and these decorator extensions:
+Later, it can also apply to these decorator [extensions](https://github.com/tc39/proposal-decorators/blob/master/EXTENSIONS.md):
 - `let`
 - `property`
 
