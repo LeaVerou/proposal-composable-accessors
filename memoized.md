@@ -78,6 +78,10 @@ class C extends B {
 This is meant to be informative, and not a complete polyfill.
 In this implementation, memoized constructors or methods depend on the [composites proposal](https://github.com/tc39/proposal-composites) for convenience and simplicity.
 
+> [!NOTE]
+> Using a Symbol property to store the old value for readability.
+> In practice, the decorators would not add any observable properties to the object.
+
 ```js
 const fnCache = new Map();
 
@@ -130,3 +134,4 @@ function memoized (value, { kind, name }) {
 
 	throw new TypeError(`@memoized cannot be used on ${kind} constructs`);
 }
+```

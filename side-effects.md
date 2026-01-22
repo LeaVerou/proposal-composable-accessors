@@ -99,6 +99,10 @@ function willSet (fn) {
 
 ### `@didSet`
 
+> [!NOTE]
+> Using a Symbol property to store the old value for readability.
+> In practice, the decorators would not add any observable properties to the object.
+
 ```js
 function didSet (fn) {
 	if (typeof fn !== "function") {
@@ -123,6 +127,9 @@ function didSet (fn) {
 
 ### `@willChange`
 
+> [!NOTE]
+> Using a Symbol property to store the old value for readability.
+> In practice, the decorators would not add any observable properties to the object.
 
 ```js
 function willChange (fn, equals = (a, b) => a === b) {
