@@ -8,16 +8,9 @@ Author/champion: **Lea Verou** ([@leaverou](https://github.com/leaverou))
 
 For history, see the [original proposal](https://github.com/LeaVerou/proposal-composable-value-accessors).
 
-
-> [!IMPORTANT]
-> This is in the process of being split from the [original proposal](https://github.com/LeaVerou/proposal-composable-value-accessors).
-> It is currently a work in progress. Move along, nothing to see here.
-
 ## Motivation
 
 There are large classes of accessor use cases with strong commonalities and they deserve better DX and tooling support.
-
-
 
 Most of these accessors are **_additive_ or _composable_**:
 Rather than the mental model of replacing a property with arbitrary code that regular accessors are designed around,
