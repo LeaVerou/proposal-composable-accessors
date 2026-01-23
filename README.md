@@ -8,6 +8,16 @@ Author/champion: **Lea Verou** ([@leaverou](https://github.com/leaverou))
 
 For history, see the [original proposal](https://github.com/LeaVerou/proposal-composable-value-accessors).
 
+## Contents
+
+1. [Status](#status)
+2. [Motivation](#motivation)
+	1. [Why built-in decorators instead of syntax?](#why-built-in-decorators-instead-of-syntax)
+	2. [Why not just rely on userland decorators?](#why-not-just-rely-on-userland-decorators)
+3. [Example](#example)
+4. [Index of current ideas](#index-of-current-ideas)
+
+
 ## Motivation
 
 There are large classes of accessor use cases with strong commonalities and they deserve better DX and tooling support.
