@@ -64,7 +64,7 @@ This proposal is meant to be combined with the [grouped and auto-accessors propo
 
 ```ts
 import isNumeric from "./validators.js";
-const { validate, lazy } = Decorators;
+const { validate, memoized } = Decorators;
 
 class C {
 	@validate(isNumeric)
